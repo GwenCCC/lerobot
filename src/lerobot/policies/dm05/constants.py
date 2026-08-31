@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-IGNORE_INDEX = -100
-DM05_STATE_BINS = 256
-
 # Runtime-only normalized reference carried from the DM05 preprocessor to the
 # policy. It is intentionally absent from model configs and checkpoints.
 ACTION_REFERENCE_OFFSET = "_dm05_action_reference_offset"
