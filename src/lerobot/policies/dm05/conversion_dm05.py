@@ -25,7 +25,7 @@ import torch
 from lerobot.configs import PipelineFeatureType, PolicyFeature
 from lerobot.lerobot_types import EnvTransition, TransitionKey
 from lerobot.processor import ObservationProcessorStep, ProcessorStep, ProcessorStepRegistry
-from lerobot.utils.constants import OBS_STATE
+from lerobot.utils.constants import OBS_IMAGES, OBS_STATE
 from lerobot.utils.import_utils import _transformers_available, require_package
 
 from .constants import MODEL_INPUT_PREFIX, STATE_BINS
@@ -158,9 +158,17 @@ class DM05TokenizerProcessorStep(ObservationProcessorStep):
         if state.ndim != 2:
             raise ValueError(f"DM05 expects batched state [B,D], got {tuple(state.shape)}.")
 
-        image_keys = get_image_keys(observation, self.image_keys)
-        if not image_keys:
-            raise ValueError("DM05 requires at least one visual observation.")
+        if self.image_keys:
+            # Configured keys are authoritative: an observation carrying an extra camera must not
+            # silently change the image count or the rendered prompt.
+            image_keys = list(self.image_keys)
+            if missing := [key for key in image_keys if key not in observation]:
+                present = sorted(key for key in observation if key.startswith(OBS_IMAGES))
+                raise ValueError(f"DM05 expects images at {missing}; the observation has {present}.")
+        else:
+            image_keys = get_image_keys(observation)
+            if not image_keys:
+                raise ValueError("DM05 requires at least one visual observation.")
         image_batches = []
         for key in image_keys:
             images = observation[key]

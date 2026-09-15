@@ -106,10 +106,12 @@ def normalize_task_batch(task: Any, batch_size: int, default_task: str) -> list[
     raise ValueError(f"Cannot broadcast task={task!r} to batch_size={batch_size}")
 
 
-def get_image_keys(batch: dict[str, Any], configured_keys: Sequence[str] | None = None) -> list[str]:
-    """Resolve the ordered image observation keys used by DM05."""
-    if configured_keys:
-        return [key for key in configured_keys if key in batch]
+def get_image_keys(batch: dict[str, Any]) -> list[str]:
+    """Sniff the ordered image observation keys from a batch.
+
+    Only a fallback: a pipeline built by `make_dm05_pre_post_processors` configures the keys
+    from `input_features`, so train and inference cannot disagree about the camera set.
+    """
     keys = [key for key in batch if key.startswith(f"{OBS_IMAGES}.")]
     return sorted(keys or (["observation.image"] if "observation.image" in batch else []))
 
