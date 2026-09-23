@@ -129,6 +129,10 @@ def make_dm05_pre_post_processors(
 
     # Pin the camera set at construction so it is serialized with the pipeline. Sniffing it from
     # the observation dict lets an extra inference camera change the prompt with no error.
+    # A base checkpoint meant for fine-tuning declares no cameras -- they come from the dataset at
+    # train time -- so leave the keys unpinned there and let the tokenizer step sniff them. Every
+    # run that has a dataset gets its features from it, so the pinned path covers real training
+    # and evaluation; an observation with no image at all still fails in the tokenizer step.
     image_keys = (
         list(config.image_keys)
         if config.image_keys
@@ -136,8 +140,6 @@ def make_dm05_pre_post_processors(
             key for key, feature in config.input_features.items() if feature.type is FeatureType.VISUAL
         )
     )
-    if not image_keys:
-        raise ValueError("DM05 requires at least one visual input feature.")
     if unknown := [key for key in image_keys if key not in config.input_features]:
         raise ValueError(f"DM05 image_keys are not declared in input_features: {unknown}.")
 
@@ -165,7 +167,7 @@ def make_dm05_pre_post_processors(
                 processor_name_or_path=processor_source,
                 tokenizer_max_length=config.tokenizer_max_length,
                 add_state=config.add_state,
-                image_keys=image_keys,
+                image_keys=image_keys or None,
             ),
         ],
         output_steps=[
