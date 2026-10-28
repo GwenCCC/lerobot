@@ -51,6 +51,7 @@ ignore = ["E501", "T201", "T203", "B008", "D107"]
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "F403", "E402", "D104"]
 "tests/**" = ["D"]
+"hwtest/**" = ["D"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
