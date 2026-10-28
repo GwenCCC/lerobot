@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Joint layout for the LimX humanoid robots.
+"""Joint layout for the LimX Oli robots.
 
-The vendor low-level SDK behind [`limx_humanoid`][lerobot_robot_limx.limx_humanoid] addresses the
+The vendor low-level SDK behind [`limx_oli`][lerobot_robot_limx.limx_oli] addresses the
 actuated joints positionally: ``RobotState.q`` and ``RobotCmd.q`` are plain lists whose order is
 fixed by the robot build rather than carried by the payload.  The SDK's own ``getMotorNames()``
 is not usable as a name source -- on the legged builds it returns concatenated names
@@ -40,7 +40,7 @@ from collections.abc import Mapping, Sequence
 import numpy as np
 
 #: Number of actuated joints in a humanoid state or command vector.
-HUMANOID_DIM = 31
+OLI_DIM = 31
 
 _LEFT_LEG_JOINTS: tuple[str, ...] = (
     "left_hip_pitch_joint",
@@ -113,7 +113,7 @@ def resolve_joint_names(names: Sequence[str] | None) -> tuple[str, ...]:
             The table to validate.  `None` selects `DEFAULT_JOINT_NAMES`.
 
     Returns:
-        `tuple[str, ...]`: The name table, guaranteed to hold `HUMANOID_DIM` unique entries.
+        `tuple[str, ...]`: The name table, guaranteed to hold `OLI_DIM` unique entries.
 
     Raises:
         ValueError: If the table has the wrong length or repeats a name.
@@ -121,9 +121,9 @@ def resolve_joint_names(names: Sequence[str] | None) -> tuple[str, ...]:
     if names is None:
         return DEFAULT_JOINT_NAMES
     resolved = tuple(names)
-    if len(resolved) != HUMANOID_DIM:
+    if len(resolved) != OLI_DIM:
         raise ValueError(
-            f"joint_names must have {HUMANOID_DIM} entries (12 leg, 3 waist, 2 head, 14 arm "
+            f"joint_names must have {OLI_DIM} entries (12 leg, 3 waist, 2 head, 14 arm "
             f"joints), got {len(resolved)}"
         )
     if len(set(resolved)) != len(resolved):
@@ -141,16 +141,16 @@ def resolve_joint_vector(values: Sequence[float] | None, field: str) -> tuple[fl
             Field name, used in the error message.
 
     Returns:
-        `tuple[float, ...]`: The `HUMANOID_DIM`-long table.
+        `tuple[float, ...]`: The `OLI_DIM`-long table.
 
     Raises:
         ValueError: If the table has the wrong length or holds a non-finite value.
     """
     if values is None:
-        return (0.0,) * HUMANOID_DIM
+        return (0.0,) * OLI_DIM
     resolved = tuple(float(value) for value in values)
-    if len(resolved) != HUMANOID_DIM:
-        raise ValueError(f"{field} must have {HUMANOID_DIM} entries, got {len(resolved)}")
+    if len(resolved) != OLI_DIM:
+        raise ValueError(f"{field} must have {OLI_DIM} entries, got {len(resolved)}")
     if not np.all(np.isfinite(resolved)):
         # These tables seed `start_pose`, `kp` and `kd`, which reach the SDK without passing
         # through `joint_vector` -- the action path already rejects non-finite targets, and a
@@ -172,7 +172,7 @@ def joint_vector(action: Mapping[str, float], joint_names: Sequence[str]) -> np.
             Joint names in SDK vector order.
 
     Returns:
-        `np.ndarray`: The `HUMANOID_DIM`-long joint target.
+        `np.ndarray`: The `OLI_DIM`-long joint target.
 
     Raises:
         KeyError: If the action is missing one of the expected joint keys.

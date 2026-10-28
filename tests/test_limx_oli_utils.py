@@ -14,20 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pure config and joint-layout tests for the LimX humanoid robots.
+"""Pure config and joint-layout tests for the LimX Oli robot.
 
 Nothing here needs the ``limxsdk`` extra: these cover the registry entry, config validation and the
-joint vector layout. Tests that drive the robot class live in ``test_limx_humanoid.py``.
+joint vector layout. Tests that drive the robot class live in ``test_limx_oli.py``.
 """
 
 import numpy as np
 import pytest
 
 from lerobot.robots.config import RobotConfig
-from lerobot_robot_limx.limx_humanoid import LimxHumanoid, LimxHumanoidConfig
-from lerobot_robot_limx.limx_humanoid.joints import (
+from lerobot_robot_limx.limx_oli import LimxOli, LimxOliConfig
+from lerobot_robot_limx.limx_oli.joints import (
     DEFAULT_JOINT_NAMES,
-    HUMANOID_DIM,
+    OLI_DIM,
     joint_vector,
     pos_key,
     resolve_joint_names,
@@ -35,32 +35,32 @@ from lerobot_robot_limx.limx_humanoid.joints import (
 )
 
 
-def make_config(**overrides) -> LimxHumanoidConfig:
+def make_config(**overrides) -> LimxOliConfig:
     base = {"robot_ip": "127.0.0.1"}
     base.update(overrides)
-    return LimxHumanoidConfig(**base)
+    return LimxOliConfig(**base)
 
 
 # ------------------------------------------------------------------- registry
 
 
 def test_registered_with_lerobot():
-    """The class must be discoverable, or --robot.type=limx_humanoid fails at parse time."""
-    assert "limx_humanoid" in RobotConfig.get_known_choices()
-    assert RobotConfig.get_choice_class("limx_humanoid") is LimxHumanoidConfig
+    """The class must be discoverable, or --robot.type=limx_oli fails at parse time."""
+    assert "limx_oli" in RobotConfig.get_known_choices()
+    assert RobotConfig.get_choice_class("limx_oli") is LimxOliConfig
 
 
 def test_robot_declares_its_config_class():
-    assert LimxHumanoid.config_class is LimxHumanoidConfig
-    assert LimxHumanoid.name == "limx_humanoid"
+    assert LimxOli.config_class is LimxOliConfig
+    assert LimxOli.name == "limx_oli"
 
 
 # --------------------------------------------------------------------- config
 
 
-def test_default_joint_names_match_the_humanoid_width():
+def test_default_joint_names_match_the_oli_width():
     config = make_config()
-    assert len(config.joint_names) == HUMANOID_DIM == 31
+    assert len(config.joint_names) == OLI_DIM == 31
 
 
 def test_default_joint_names_cover_legs_waist_head_and_arms():
@@ -99,8 +99,8 @@ def test_duplicate_joint_names_rejected():
 
 
 def test_gain_tables_are_validated():
-    assert len(make_config().kp) == HUMANOID_DIM
-    assert len(make_config().kd) == HUMANOID_DIM
+    assert len(make_config().kp) == OLI_DIM
+    assert len(make_config().kd) == OLI_DIM
     with pytest.raises(ValueError, match="kp must have 31"):
         make_config(kp=[1.0] * 3)
     with pytest.raises(ValueError, match="kd must have 31"):
@@ -134,7 +134,7 @@ def test_resolve_joint_names_falls_back_to_the_default():
 
 
 def test_resolve_joint_vector_fills_neutral_values():
-    assert resolve_joint_vector(None, "kp") == (0.0,) * HUMANOID_DIM
+    assert resolve_joint_vector(None, "kp") == (0.0,) * OLI_DIM
 
 
 def test_pos_key_appends_the_suffix():
@@ -144,7 +144,7 @@ def test_pos_key_appends_the_suffix():
 def test_joint_vector_follows_the_joint_name_order():
     names = make_config().joint_names
     action = {pos_key(name): float(index) for index, name in enumerate(names)}
-    np.testing.assert_allclose(joint_vector(action, names), np.arange(HUMANOID_DIM))
+    np.testing.assert_allclose(joint_vector(action, names), np.arange(OLI_DIM))
 
 
 def test_joint_vector_reports_missing_keys():

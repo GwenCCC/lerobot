@@ -15,8 +15,10 @@ license-files = ["LICENSE"]
 authors = [{ name = "LimX Dynamics" }]
 requires-python = ">=3.12"
 dependencies = [
+    # core-scripts brings the dataset, hardware and viz deps that lerobot-record and
+    # lerobot-teleoperate need (LeRobot 0.6 slimmed its base install).
     # Tested against LeRobot 0.6.x; widen after CI passes on a new minor.
-    "lerobot>=0.6.1,<0.7.0",
+    "lerobot[core-scripts]>=0.6.1,<0.7.0",
     "numpy",
 ]
 

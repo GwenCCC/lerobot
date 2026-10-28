@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .config_limx_humanoid import LimxHumanoidConfig
-from .limx_humanoid import LimxHumanoid
+from .config_limx_oli import LimxOliConfig
+from .limx_oli import LimxOli
 
-__all__ = ["LimxHumanoid", "LimxHumanoidConfig"]
+__all__ = ["LimxOli", "LimxOliConfig"]

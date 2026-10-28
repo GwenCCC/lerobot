@@ -5,19 +5,24 @@ Install it next to LeRobot and the robots below become available to every LeRobo
 (`lerobot-record`, `lerobot-teleoperate`, `lerobot-replay`, `lerobot-calibrate`, `lerobot-rollout`)
 with no change to LeRobot itself.
 
-| `--robot.type`  | Robot                                     | Joints | Vendor runtime | Extra   | Guide                                  |
-| --------------- | ----------------------------------------- | ------ | -------------- | ------- | -------------------------------------- |
-| `limx_tron1`    | TRON1 point / sole / wheel foot           | 6 / 8  | `limxsdk`      | `tron1` | [docs/limx_tron1.md](docs/limx_tron1.md)       |
-| `limx_tron2`    | TRON2 dual-arm (2×7-DoF arms, 2-DoF head) | 16     | `tron2-env`    | `tron2` | [docs/limx_tron2.md](docs/limx_tron2.md)       |
-| `limx_humanoid` | Oli full-size humanoid (`HU_D04`)         | 31     | `limxsdk`      | `oli`   | [docs/limx_humanoid.md](docs/limx_humanoid.md) |
-| `limx_luna`     | Luna humanoid (`HU_L04`)                  | 27     | `limxsdk`      | `luna`  | [docs/limx_luna.md](docs/limx_luna.md)         |
+| `--robot.type` | Robot                                     | Joints | Vendor runtime | Extra   | Guide                                    |
+| -------------- | ----------------------------------------- | ------ | -------------- | ------- | ---------------------------------------- |
+| `limx_tron1`   | TRON1 point / sole / wheel foot           | 6 / 8  | `limxsdk`      | `tron1` | [docs/limx_tron1.md](docs/limx_tron1.md) |
+| `limx_tron2`   | TRON2 dual-arm (2×7-DoF arms, 2-DoF head) | 16     | `tron2-env`    | `tron2` | [docs/limx_tron2.md](docs/limx_tron2.md) |
+| `limx_oli`     | Oli full-size humanoid (`HU_D04`)         | 31     | `limxsdk`      | `oli`   | [docs/limx_oli.md](docs/limx_oli.md)     |
+| `limx_luna`    | Luna humanoid (`HU_L04`)                  | 27     | `limxsdk`      | `luna`  | [docs/limx_luna.md](docs/limx_luna.md)   |
+
+> [!NOTE]
+> Oli was proposed upstream as `limx_humanoid` (huggingface/lerobot#4800). In this plugin its robot
+> type is `limx_oli`, and the classes are `LimxOli` / `LimxOliConfig`.
 
 ## Install
 
-Install the extra for your robot, so only the vendor runtime you need is pulled in:
+Install the extra for your robot, so only the vendor runtime you need is pulled in. LeRobot itself,
+with the dependencies `lerobot-record` and `lerobot-teleoperate` need (`lerobot[core-scripts]`), is
+installed automatically:
 
 ```bash
-pip install "lerobot[dataset]"               # LeRobot itself, with dataset recording
 pip install "lerobot_robot_limx[tron1]"      # or [tron2], [oli], [luna], [all]
 ```
 

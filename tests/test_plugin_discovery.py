@@ -28,7 +28,7 @@ from lerobot.utils.import_utils import register_third_party_plugins
 ROBOT_TYPES = {
     "limx_tron1": ("LimxTron1Config", "LimxTron1", {}),
     "limx_tron2": ("LimxTron2Config", "LimxTron2", {"robot_ip": "10.0.0.1"}),
-    "limx_humanoid": ("LimxHumanoidConfig", "LimxHumanoid", {}),
+    "limx_oli": ("LimxOliConfig", "LimxOli", {}),
     "limx_luna": ("LimxLunaConfig", "LimxLuna", {"kp": [1.0] * 27, "kd": [0.1] * 27}),
 }
 

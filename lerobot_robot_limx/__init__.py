@@ -18,25 +18,25 @@ LeRobot imports this package automatically (any installed distribution named
 
 - ``limx_tron1``    — TRON1 legged robot (point / sole / wheel foot)
 - ``limx_tron2``    — TRON2 dual-arm
-- ``limx_humanoid`` — Oli full-size humanoid (31 joints)
+- ``limx_oli``      — Oli full-size humanoid (31 joints)
 - ``limx_luna``     — Luna humanoid (27 joints)
 
 Vendor SDKs are imported lazily at ``connect()``, so importing this package never
 requires them.
 """
 
-from .limx_humanoid import LimxHumanoid, LimxHumanoidConfig
 from .limx_luna import LimxLuna, LimxLunaConfig
+from .limx_oli import LimxOli, LimxOliConfig
 from .limx_tron1 import LimxTron1, LimxTron1Config
 from .limx_tron2 import LimxTron2, LimxTron2Config
 
 __version__ = "0.1.0"
 
 __all__ = [
-    "LimxHumanoid",
-    "LimxHumanoidConfig",
     "LimxLuna",
     "LimxLunaConfig",
+    "LimxOli",
+    "LimxOliConfig",
     "LimxTron1",
     "LimxTron1Config",
     "LimxTron2",

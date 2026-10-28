@@ -19,7 +19,7 @@
 The Luna humanoid (``HU_L04``) is a different build with 27 joints rather than 31, and is not
 covered by this robot type.
 
-Registering the subclass is what makes ``--robot.type=limx_humanoid`` resolvable on the
+Registering the subclass is what makes ``--robot.type=limx_oli`` resolvable on the
 LeRobot command line.
 """
 
@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 
 from lerobot.robots.config import RobotConfig
 
-from .joints import HUMANOID_DIM, resolve_joint_names, resolve_joint_vector
+from .joints import OLI_DIM, resolve_joint_names, resolve_joint_vector
 
 #: Default position gains, one per joint in `joint_names` order.
 #:
@@ -117,15 +117,15 @@ _DEFAULT_KD: tuple[float, ...] = (
 )
 
 
-@RobotConfig.register_subclass("limx_humanoid")
+@RobotConfig.register_subclass("limx_oli")
 @dataclass
-class LimxHumanoidConfig(RobotConfig):
-    """Connection and control settings for a LimX humanoid robot.
+class LimxOliConfig(RobotConfig):
+    """Connection and control settings for a LimX Oli robot.
 
     The robot is reached through the vendor low-level SDK, which opens a live connection to the
     robot's own controller.  The SDK addresses the 31 actuated joints positionally, so the name
     table below is descriptive rather than SDK-provided; see
-    [`limx_humanoid.joints`][lerobot_robot_limx.limx_humanoid.joints] for where it comes from.
+    [`limx_oli.joints`][lerobot_robot_limx.limx_oli.joints] for where it comes from.
 
     Args:
         robot_ip (`str`, *optional*, defaults to `"10.192.1.2"`):
@@ -143,7 +143,7 @@ class LimxHumanoidConfig(RobotConfig):
             Derivative gains, matching `kp` joint for joint.
         joint_names (`list[str]`, *optional*):
             Joint name table in SDK vector order.  Defaults to the descriptive names in
-            [`limx_humanoid.joints`][lerobot_robot_limx.limx_humanoid.joints]; override to match an
+            [`limx_oli.joints`][lerobot_robot_limx.limx_oli.joints]; override to match an
             existing dataset or policy checkpoint.
         publish_rate (`float`, *optional*, defaults to 1000.0):
             Rate in Hz at which joint targets are republished to the robot while it is
@@ -158,7 +158,7 @@ class LimxHumanoidConfig(RobotConfig):
             is only appropriate for transports that do not timestamp state; on real hardware
             prefer ~0.5.
         id (`str`, *optional*):
-            Identifier that distinguishes this robot from other LimX humanoid instances.
+            Identifier that distinguishes this robot from other LimX Oli instances.
         calibration_dir (`Path`, *optional*):
             Directory LeRobot uses for calibration files.  Unused for this robot; see the note
             below.
@@ -209,5 +209,5 @@ class LimxHumanoidConfig(RobotConfig):
             raise ValueError(f"observation_timeout must be positive, got {self.observation_timeout}")
         if self.state_max_age is not None and self.state_max_age <= 0:
             raise ValueError(f"state_max_age must be positive or None, got {self.state_max_age}")
-        if len(self.kp) != HUMANOID_DIM or len(self.kd) != HUMANOID_DIM:
+        if len(self.kp) != OLI_DIM or len(self.kd) != OLI_DIM:
             raise ValueError("kp and kd must each hold one value per joint")

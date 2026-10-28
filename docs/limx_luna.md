@@ -18,7 +18,7 @@ arms — and LeRobot drives all of them as a single `limx_luna` robot.
 | Transport | Vendor low-level SDK over IP, robot control port                         |
 
 Luna is a separate build from the LimX Oli humanoid (`HU_D04`), which has 31 joints and its own
-robot type (`limx_humanoid`).
+robot type (`limx_oli`).
 
 ## Install
 

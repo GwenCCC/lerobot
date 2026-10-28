@@ -1,11 +1,11 @@
-# LimX Humanoid
+# LimX Oli
 
 The [LimX Dynamics](https://www.limxdynamics.com/) full-size humanoid (Oli) is supported in LeRobot through the `lerobot_robot_limx` plugin.
 The robot exposes 31 actuated joints — two 6-DoF legs, a 3-DoF waist, a 2-DoF head and two 7-DoF arms
-— and LeRobot drives all of them as a single `limx_humanoid` robot.
+— and LeRobot drives all of them as a single `limx_oli` robot.
 
 > [!TIP]
-> This integration talks to the robot's own control process through the vendor low-level SDK, which is published on PyPI as prebuilt wheels (`limxsdk`). It is imported lazily, on `connect()`, so `--robot.type=limx_humanoid` stays discoverable even when the extra is not installed.
+> This integration talks to the robot's own control process through the vendor low-level SDK, which is published on PyPI as prebuilt wheels (`limxsdk`). It is imported lazily, on `connect()`, so `--robot.type=limx_oli` stays discoverable even when the extra is not installed.
 
 ## Supported Hardware
 
@@ -23,7 +23,7 @@ robot type.
 
 ## Install
 
-Humanoid support is an optional extra, because it pulls in the vendor SDK:
+Oli support is an optional extra, because it pulls in the vendor SDK:
 
 ```bash
 pip install 'lerobot_robot_limx[oli]'
@@ -66,9 +66,9 @@ vendor also ships a MuJoCo simulator (`humanoid-mujoco-sim`) you can run first, 
 ## Verify the Connection
 
 ```python
-from lerobot_robot_limx.limx_humanoid import LimxHumanoid, LimxHumanoidConfig
+from lerobot_robot_limx.limx_oli import LimxOli, LimxOliConfig
 
-robot = LimxHumanoid(LimxHumanoidConfig(robot_ip="10.192.1.2"))
+robot = LimxOli(LimxOliConfig(robot_ip="10.192.1.2"))
 robot.connect()
 print(robot.get_observation())
 robot.disconnect()
@@ -130,7 +130,7 @@ Example:
 
 ```bash
 lerobot-record \
-  --robot.type=limx_humanoid \
+  --robot.type=limx_oli \
   --robot.robot_ip=10.192.1.2
 ```
 

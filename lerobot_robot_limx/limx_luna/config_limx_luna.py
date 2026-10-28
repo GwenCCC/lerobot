@@ -16,7 +16,7 @@
 
 """Robot configuration for the LimX Dynamics Luna humanoid robot (``HU_L04``).
 
-Luna is a separate build from the Oli humanoid (``HU_D04``, robot type ``limx_humanoid``): it has
+Luna is a separate build from the Oli humanoid (``HU_D04``, robot type ``limx_oli``): it has
 27 actuated joints rather than 31, so it gets its own robot type and joint table.
 
 Registering the subclass is what makes ``--robot.type=limx_luna`` resolvable on the

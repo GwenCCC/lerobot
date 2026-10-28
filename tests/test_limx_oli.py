@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for the LimX humanoid robot class.
+"""Tests for the LimX Oli robot class.
 
 These drive the driver against a stand-in for the vendor SDK, so they need no robot, no network
 and no ``limxsdk`` install. The stand-in reproduces the parts of the SDK contract the driver
@@ -30,8 +30,8 @@ import types
 
 import pytest
 
-from lerobot_robot_limx.limx_humanoid import LimxHumanoid, LimxHumanoidConfig
-from lerobot_robot_limx.limx_humanoid.joints import HUMANOID_DIM, pos_key
+from lerobot_robot_limx.limx_oli import LimxOli, LimxOliConfig
+from lerobot_robot_limx.limx_oli.joints import OLI_DIM, pos_key
 
 
 class FakeRobotCmd:
@@ -96,10 +96,10 @@ class FakeVendorRobot:
         self._state_callback(FakeRobotState(q))
 
 
-class HarnessRobot(LimxHumanoid):
-    """``LimxHumanoid`` wired to a fake SDK handle instead of the vendor package."""
+class HarnessRobot(LimxOli):
+    """``LimxOli`` wired to a fake SDK handle instead of the vendor package."""
 
-    def __init__(self, config: LimxHumanoidConfig, vendor: FakeVendorRobot) -> None:
+    def __init__(self, config: LimxOliConfig, vendor: FakeVendorRobot) -> None:
         super().__init__(config)
         self._vendor = vendor
 
@@ -110,10 +110,10 @@ class HarnessRobot(LimxHumanoid):
         return self._vendor, FakeDatatypes
 
 
-def make_config(**overrides) -> LimxHumanoidConfig:
+def make_config(**overrides) -> LimxOliConfig:
     base = {"robot_ip": "127.0.0.1", "publish_rate": 100.0}
     base.update(overrides)
-    return LimxHumanoidConfig(**base)
+    return LimxOliConfig(**base)
 
 
 def install_fake_limxsdk(monkeypatch, recorded: dict):
@@ -133,9 +133,7 @@ def install_fake_limxsdk(monkeypatch, recorded: dict):
 
     monkeypatch.setitem(sys.modules, "limxsdk", top_module)
     monkeypatch.setitem(sys.modules, "limxsdk.robot", robot_module)
-    monkeypatch.setattr(
-        "lerobot_robot_limx.limx_humanoid.limx_humanoid.require_sdk", lambda *args, **kwargs: None
-    )
+    monkeypatch.setattr("lerobot_robot_limx.limx_oli.limx_oli.require_sdk", lambda *args, **kwargs: None)
 
 
 # ------------------------------------------------------------------ features
@@ -146,7 +144,7 @@ def test_observation_features_match_get_observation():
     robot = HarnessRobot(make_config(), vendor)
     robot.connect()
     try:
-        vendor.push_state(range(HUMANOID_DIM))
+        vendor.push_state(range(OLI_DIM))
         assert set(robot.get_observation()) == set(robot.observation_features)
         assert set(robot.action_features) == set(robot.observation_features)
     finally:
@@ -158,7 +156,7 @@ def test_observation_reports_measured_state():
     robot = HarnessRobot(make_config(), vendor)
     robot.connect()
     try:
-        positions = [0.1 * index for index in range(HUMANOID_DIM)]
+        positions = [0.1 * index for index in range(OLI_DIM)]
         vendor.push_state(positions)
         observation = robot.get_observation()
         for name, expected in zip(robot.config.joint_names, positions, strict=True):
@@ -184,14 +182,14 @@ def test_action_reaches_the_robot_as_a_31_value_command():
 
     assert vendor.published, "send_action published no command"
     command = vendor.published[-1]
-    assert command.q == pytest.approx([0.25] * HUMANOID_DIM)
-    assert len(command.Kp) == HUMANOID_DIM
-    assert len(command.Kd) == HUMANOID_DIM
+    assert command.q == pytest.approx([0.25] * OLI_DIM)
+    assert len(command.Kp) == OLI_DIM
+    assert len(command.Kd) == OLI_DIM
     # The fake SDK returns no real motor names, so the command name field falls back to the
     # descriptive table.  mode 0 is the SDK's torque-position hybrid mode, matching the
     # vendor examples (see the driver's `_publish` for the semantics).
     assert command.motor_names == robot.config.joint_names
-    assert command.mode == [0] * HUMANOID_DIM
+    assert command.mode == [0] * OLI_DIM
 
 
 def test_action_order_follows_joint_names():
@@ -204,7 +202,7 @@ def test_action_order_follows_joint_names():
     finally:
         robot.disconnect()
 
-    assert vendor.published[-1].q == pytest.approx(list(range(HUMANOID_DIM)))
+    assert vendor.published[-1].q == pytest.approx(list(range(OLI_DIM)))
 
 
 def test_send_action_returns_only_the_commanded_setpoint():
@@ -221,7 +219,7 @@ def test_send_action_returns_only_the_commanded_setpoint():
 
 
 def test_vendor_motor_names_are_preferred_when_usable():
-    vendor = FakeVendorRobot(motor_names=[f"j{index}" for index in range(HUMANOID_DIM)])
+    vendor = FakeVendorRobot(motor_names=[f"j{index}" for index in range(OLI_DIM)])
     robot = HarnessRobot(make_config(publish_rate=0.0001), vendor)
     robot.connect()
     try:
@@ -230,7 +228,7 @@ def test_vendor_motor_names_are_preferred_when_usable():
     finally:
         robot.disconnect()
 
-    assert vendor.published[-1].motor_names == [f"j{index}" for index in range(HUMANOID_DIM)]
+    assert vendor.published[-1].motor_names == [f"j{index}" for index in range(OLI_DIM)]
 
 
 def test_unusable_vendor_motor_names_fall_back_to_descriptive_table():
@@ -261,7 +259,7 @@ def test_missing_joint_key_is_reported():
 
 def test_start_pose_is_published_once_connected():
     vendor = FakeVendorRobot()
-    robot = HarnessRobot(make_config(start_pose=[0.5] * HUMANOID_DIM, publish_rate=200.0), vendor)
+    robot = HarnessRobot(make_config(start_pose=[0.5] * OLI_DIM, publish_rate=200.0), vendor)
     robot.connect()
     try:
         deadline = time.monotonic() + 1.0
@@ -271,7 +269,7 @@ def test_start_pose_is_published_once_connected():
         robot.disconnect()
 
     assert vendor.published, "the publish loop never sent the start pose"
-    assert vendor.published[0].q == pytest.approx([0.5] * HUMANOID_DIM)
+    assert vendor.published[0].q == pytest.approx([0.5] * OLI_DIM)
 
 
 def test_nothing_is_published_without_a_target():
@@ -338,7 +336,7 @@ def test_robot_type_is_exported_before_the_vendor_import(monkeypatch):
     install_fake_limxsdk(monkeypatch, recorded)
     monkeypatch.delenv("ROBOT_TYPE", raising=False)
 
-    robot = LimxHumanoid(make_config(robot_type="HU_D04_01"))
+    robot = LimxOli(make_config(robot_type="HU_D04_01"))
     robot._make_robot()
 
     assert recorded["env"] == "HU_D04_01"
@@ -350,7 +348,7 @@ def test_vendor_default_is_left_alone_when_robot_type_is_unset(monkeypatch):
     install_fake_limxsdk(monkeypatch, recorded)
     monkeypatch.delenv("ROBOT_TYPE", raising=False)
 
-    robot = LimxHumanoid(make_config())
+    robot = LimxOli(make_config())
     robot._make_robot()
 
     assert "ROBOT_TYPE" not in os.environ
@@ -408,7 +406,7 @@ def test_stale_state_is_rejected():
     robot = HarnessRobot(make_config(observation_timeout=0.05, state_max_age=0.02), vendor)
     robot.connect()
     try:
-        vendor.push_state(range(HUMANOID_DIM))
+        vendor.push_state(range(OLI_DIM))
         robot.get_observation()  # fresh: accepted
         time.sleep(0.08)
         with pytest.raises(RuntimeError, match="no fresh state sample"):
@@ -449,7 +447,7 @@ class OwnedLock:
 class LockScopeHarness(HarnessRobot):
     """``HarnessRobot`` that flags every read of the target made outside the publish lock."""
 
-    def __init__(self, config: LimxHumanoidConfig, vendor: FakeVendorRobot) -> None:
+    def __init__(self, config: LimxOliConfig, vendor: FakeVendorRobot) -> None:
         super().__init__(config, vendor)
         self.target_reads_outside_lock = 0
         self._publish_lock = OwnedLock()
@@ -470,7 +468,7 @@ def test_the_publish_loop_reads_the_target_inside_the_publish_lock():
     """Reading the target outside the lock is what let an older setpoint overtake a newer one."""
     vendor = FakeVendorRobot()
     config = make_config(publish_rate=1000.0)
-    config.start_pose = [0.1] * HUMANOID_DIM
+    config.start_pose = [0.1] * OLI_DIM
     robot = LockScopeHarness(config, vendor)
 
     robot.connect()
@@ -502,10 +500,10 @@ class BlockingVendorRobot(FakeVendorRobot):
         super().publishRobotCmd(cmd)
 
 
-class SwappableHarness(LimxHumanoid):
-    """``LimxHumanoid`` that hands out a different vendor handle on each connection."""
+class SwappableHarness(LimxOli):
+    """``LimxOli`` that hands out a different vendor handle on each connection."""
 
-    def __init__(self, config: LimxHumanoidConfig, vendors: list) -> None:
+    def __init__(self, config: LimxOliConfig, vendors: list) -> None:
         super().__init__(config)
         self._vendors = list(vendors)
 
@@ -521,7 +519,7 @@ def test_a_publisher_stranded_by_disconnect_does_not_outlive_that_connection():
     second = FakeVendorRobot()
     config = make_config(publish_rate=1000.0)
     # A target has to exist before the loop will call the SDK at all.
-    config.start_pose = [0.1] * HUMANOID_DIM
+    config.start_pose = [0.1] * OLI_DIM
     robot = SwappableHarness(config, [first, second])
 
     robot.connect()
@@ -545,4 +543,4 @@ def test_a_publisher_stranded_by_disconnect_does_not_outlive_that_connection():
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
 def test_non_finite_tables_are_rejected_before_anything_reaches_the_sdk(field, bad):
     with pytest.raises(ValueError, match="non-finite"):
-        make_config(**{field: [bad] * HUMANOID_DIM})
+        make_config(**{field: [bad] * OLI_DIM})

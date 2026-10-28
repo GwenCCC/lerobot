@@ -17,7 +17,7 @@
 """LeRobot driver for the LimX Dynamics Oli humanoid robot (``HU_D04``).
 
 The connection rides on the vendor low-level SDK, which reaches the robot's own control process
-over IP.  The SDK is imported lazily inside [`LimxHumanoid.connect`], so a missing optional
+over IP.  The SDK is imported lazily inside [`LimxOli.connect`], so a missing optional
 dependency surfaces as a one-line ``pip install 'lerobot_robot_limx[oli]'`` hint at connect time
 rather than an ImportError at import time.
 
@@ -26,7 +26,7 @@ environment variable, which it reads when the vendor package is first imported -
 exports it before importing when ``robot_type`` is set, and a process cannot switch robot builds
 once the package has been loaded.  And it addresses joints positionally: ``RobotState`` carries
 ``q``/``dq``/``tau`` as bare lists, so the driver always sends ``motor_names`` alongside a command
-and keeps its own name table (see [`limx_humanoid.joints`][lerobot_robot_limx.limx_humanoid.joints]).
+and keeps its own name table (see [`limx_oli.joints`][lerobot_robot_limx.limx_oli.joints]).
 """
 
 from __future__ import annotations
@@ -43,29 +43,29 @@ from lerobot.lerobot_types import RobotAction, RobotObservation
 from lerobot.robots.robot import Robot
 
 from .._deps import require_sdk
-from .config_limx_humanoid import LimxHumanoidConfig
-from .joints import HUMANOID_DIM, joint_vector, pos_key
+from .config_limx_oli import LimxOliConfig
+from .joints import OLI_DIM, joint_vector, pos_key
 
 logger = logging.getLogger(__name__)
 
 
-class LimxHumanoid(Robot):
-    """Drive a LimX humanoid robot through the vendor low-level SDK.
+class LimxOli(Robot):
+    """Drive a LimX Oli robot through the vendor low-level SDK.
 
     Joint targets are positions in radians.  While the robot is connected a background thread
     republishes the latest target at ``publish_rate`` so the controller keeps receiving commands
-    between [`send_action`][lerobot_robot_limx.limx_humanoid.limx_humanoid.LimxHumanoid.send_action]
+    between [`send_action`][lerobot_robot_limx.limx_oli.limx_oli.LimxOli.send_action]
     calls; nothing is published until either ``start_pose`` or a first action provides a target.
 
     **Attributes**:
-        - **config_class** (`type[LimxHumanoidConfig]`) -- The configuration class this robot reads.
-        - **name** (`str`) -- The robot type used on the command line, `"limx_humanoid"`.
+        - **config_class** (`type[LimxOliConfig]`) -- The configuration class this robot reads.
+        - **name** (`str`) -- The robot type used on the command line, `"limx_oli"`.
     """
 
-    config_class = LimxHumanoidConfig
-    name = "limx_humanoid"
+    config_class = LimxOliConfig
+    name = "limx_oli"
 
-    def __init__(self, config: LimxHumanoidConfig):
+    def __init__(self, config: LimxOliConfig):
         super().__init__(config)
         self.config = config
         self._robot: Any | None = None
@@ -113,7 +113,7 @@ class LimxHumanoid(Robot):
         Args:
             calibrate (`bool`, *optional*, defaults to `True`):
                 Accepted for interface compatibility.  The robot controller zeroes itself, so this
-                only calls [`LimxHumanoid.calibrate`], which does nothing.
+                only calls [`LimxOli.calibrate`], which does nothing.
 
         Raises:
             ConnectionError: If the SDK does not report a successful initialisation.
@@ -124,7 +124,7 @@ class LimxHumanoid(Robot):
 
         robot, datatypes = self._make_robot()
         if not robot.init(self.config.robot_ip):
-            raise ConnectionError(f"LimX humanoid SDK failed to initialise against {self.config.robot_ip}")
+            raise ConnectionError(f"LimX Oli SDK failed to initialise against {self.config.robot_ip}")
 
         self._robot = robot
         self._datatypes = datatypes
@@ -141,7 +141,7 @@ class LimxHumanoid(Robot):
         self._publisher = threading.Thread(
             target=self._publish_loop,
             args=(stop, robot, datatypes),
-            name="limx-humanoid-publish",
+            name="limx-oli-publish",
             daemon=True,
         )
         self._publisher.start()
@@ -166,7 +166,7 @@ class LimxHumanoid(Robot):
         from limxsdk import datatypes
         from limxsdk.robot import Robot as VendorRobot, RobotType
 
-        logger.info("Connecting to LimX humanoid at %s", self.config.robot_ip)
+        logger.info("Connecting to LimX Oli at %s", self.config.robot_ip)
         robot = VendorRobot(RobotType.Humanoid)
         robot.subscribeRobotState(self._on_state)
         return robot, datatypes
@@ -177,7 +177,7 @@ class LimxHumanoid(Robot):
         The SDK indexes joints positionally, so the ``q`` vector works without names.  But the
         vendor's own example fills ``RobotCmd.motor_names`` from ``getMotorNames()``, which
         suggests the controller *may* route commands by name rather than by index.  This reads
-        those names and returns them only when they look usable (exactly `HUMANOID_DIM`,
+        those names and returns them only when they look usable (exactly `OLI_DIM`,
         non-empty, no duplicates); otherwise it returns `None` and the caller falls back to the
         descriptive table.  A failure here must never block connecting.
 
@@ -191,13 +191,13 @@ class LimxHumanoid(Robot):
             return None
         if (
             isinstance(names, (list, tuple))
-            and len(names) == HUMANOID_DIM
+            and len(names) == OLI_DIM
             and all(isinstance(name, str) and name.strip() for name in names)
-            and len(set(names)) == HUMANOID_DIM
+            and len(set(names)) == OLI_DIM
         ):
             return [name.strip() for name in names]
         logger.warning(
-            "LimX humanoid SDK returned no usable motor names; sending the descriptive "
+            "LimX Oli SDK returned no usable motor names; sending the descriptive "
             "table in the command name field instead"
         )
         return None
@@ -266,7 +266,7 @@ class LimxHumanoid(Robot):
                     try:
                         self._send(robot, datatypes, target)
                     except Exception:  # a transient publish failure must not kill the loop
-                        logger.exception("Failed to publish a LimX humanoid joint command")
+                        logger.exception("Failed to publish a LimX Oli joint command")
             stop.wait(period)
 
     def _send(self, robot: Any, datatypes: Any, target: np.ndarray) -> None:
@@ -282,16 +282,16 @@ class LimxHumanoid(Robot):
         # This is exactly what the vendor's own standing controller ships on the real robot
         # (humanoid-rl-deploy-python: mode 0, tau 0, dq 0), so it is the vendor-validated choice
         # rather than an assumption.
-        command.mode = [0] * HUMANOID_DIM
+        command.mode = [0] * OLI_DIM
         command.q = target.tolist()
-        command.dq = [0.0] * HUMANOID_DIM
-        command.tau = [0.0] * HUMANOID_DIM
+        command.dq = [0.0] * OLI_DIM
+        command.tau = [0.0] * OLI_DIM
         command.Kp = list(self.config.kp)
         command.Kd = list(self.config.kd)
         # Prefer the vendor's own motor names when the SDK returned them (the controller may
         # route by name); fall back to the descriptive table otherwise.
         command.motor_names = list(self._sdk_motor_names or self.config.joint_names)
-        command.parallel_solve_required = [True] * HUMANOID_DIM
+        command.parallel_solve_required = [True] * OLI_DIM
         robot.publishRobotCmd(command)
 
     # --------------------------------------------------------------- features
@@ -330,8 +330,8 @@ class LimxHumanoid(Robot):
         # programming error into a misleading "the robot is unreachable" message.
         self._require_connected()
         positions = self._wait_for_state()
-        if len(positions) != HUMANOID_DIM:
-            raise RuntimeError(f"expected {HUMANOID_DIM} joint positions from the SDK, got {len(positions)}")
+        if len(positions) != OLI_DIM:
+            raise RuntimeError(f"expected {OLI_DIM} joint positions from the SDK, got {len(positions)}")
         return {
             pos_key(name): float(value)
             for name, value in zip(self.config.joint_names, positions, strict=True)
@@ -347,7 +347,7 @@ class LimxHumanoid(Robot):
         Returns:
             `RobotAction`: The setpoint actually commanded, keyed by `action_features`.  As in
             the other LeRobot robots (see [`Robot.send_action`]), this is the command, not a
-            measured echo; measured positions come from [`LimxHumanoid.get_observation`].  Any
+            measured echo; measured positions come from [`LimxOli.get_observation`].  Any
             keys the robot does not command are dropped, so recorded datasets match
             `action_features`.
 
@@ -400,8 +400,8 @@ class LimxHumanoid(Robot):
     def _require_connected(self) -> tuple[Any, Any]:
         """Return the live SDK handle and its ``datatypes`` module.
 
-        The two are set by [`LimxHumanoid.connect`] and cleared by
-        [`LimxHumanoid.disconnect`] together, so one check covers both.
+        The two are set by [`LimxOli.connect`] and cleared by
+        [`LimxOli.disconnect`] together, so one check covers both.
 
         Returns:
             `tuple[Any, Any]`: The vendor robot handle and the ``limxsdk.datatypes``
@@ -412,10 +412,10 @@ class LimxHumanoid(Robot):
         """
         if self._robot is None or self._datatypes is None:
             raise RuntimeError(
-                "LimX humanoid robot is not connected - call connect() first "
+                "LimX Oli robot is not connected - call connect() first "
                 "(LeRobot does this for you via the Robot context manager)"
             )
         return self._robot, self._datatypes
 
 
-__all__ = ["LimxHumanoid"]
+__all__ = ["LimxOli"]
