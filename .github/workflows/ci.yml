@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly run against LeRobot main, to catch upstream API changes early.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.14.1
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lerobot:
+          - name: "0.6.1 (oldest supported)"
+            spec: "lerobot==0.6.1"
+          - name: "latest release"
+            spec: "lerobot"
+          - name: "main"
+            spec: "lerobot @ git+https://github.com/huggingface/lerobot.git@main"
+    name: test (lerobot ${{ matrix.lerobot.name }})
+    continue-on-error: ${{ matrix.lerobot.name == 'main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install CPU torch first (keeps the job small)
+        run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+      - name: Install LeRobot
+        run: pip install "${{ matrix.lerobot.spec }}"
+      - name: Install plugin with vendor SDKs
+        # Real vendor packages, so the controller tests run instead of skipping.
+        run: pip install -e ".[tron1,tron2,test]"
+      - name: Tests
+        run: pytest -q --timeout=60

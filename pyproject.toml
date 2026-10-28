@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# The distribution name must use underscores and match the import name:
+# LeRobot discovers plugins by importing each installed distribution whose
+# name starts with "lerobot_robot_".
+name = "lerobot_robot_limx"
+version = "0.1.0"
+description = "LeRobot plugin for LimX Dynamics robots: TRON1, TRON2, Oli and Luna"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "LimX Dynamics" }]
+requires-python = ">=3.12"
+dependencies = [
+    # Tested against LeRobot 0.6.x; widen after CI passes on a new minor.
+    "lerobot>=0.6.1,<0.7.0",
+    "numpy",
+]
+
+[project.optional-dependencies]
+tron1 = ["limxsdk>=4.1.0,<5.0.0 ; sys_platform != 'darwin'"]
+oli = ["limxsdk>=4.1.0,<5.0.0 ; sys_platform != 'darwin'"]
+luna = ["limxsdk>=4.1.0,<5.0.0 ; sys_platform != 'darwin'"]
+tron2 = ["tron2-env>=0.1.0,<0.2.0"]
+all = ["lerobot_robot_limx[tron1,tron2,oli,luna]"]
+test = ["pytest>=8", "pytest-timeout"]
+
+[project.urls]
+Homepage = "https://github.com/limxdynamics/lerobot_robot_limx"
+
+[tool.setuptools.packages.find]
+include = ["lerobot_robot_limx*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 110
+
+[tool.ruff.lint]
+# Same rule set as huggingface/lerobot, so code can move between the two unchanged.
+select = ["E", "W", "F", "I", "B", "C4", "T20", "N", "UP", "SIM", "D"]
+ignore = ["E501", "T201", "T203", "B008", "D107"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403", "E402", "D104"]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+# lerobot is grouped with this package, matching the import layout used upstream.
+known-first-party = ["lerobot", "lerobot_robot_limx"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

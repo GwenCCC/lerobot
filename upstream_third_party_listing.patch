@@ -1,0 +1,15 @@
+diff --git a/docs/source/third_party_robots.mdx b/docs/source/third_party_robots.mdx
+index 81e30b2..1e3a57e 100644
+--- a/docs/source/third_party_robots.mdx
++++ b/docs/source/third_party_robots.mdx
+@@ -214,6 +214,10 @@ lerobot-record \
+       <td><a href="https://github.com/OpenWonderLabs/onero_lerobot">onero_lerobot</a></td>
+       <td>Plugin for the <a href="https://www.switch-bot.com/">SwitchBot</a> Onero H1 wheeled household humanoid, wrapping its ROS 2 SDK as a LeRobot robot.</td>
+     </tr>
++    <tr style="border:0">
++      <td><a href="https://github.com/limxdynamics/lerobot_robot_limx">lerobot_robot_limx</a></td>
++      <td>Official plugin from <a href="https://www.limxdynamics.com/">LimX Dynamics</a> for the TRON1 legged robots (point, sole and wheel foot), the TRON2 dual-arm robot, and the Oli and Luna humanoids, with joint-position control through the vendor SDKs.</td>
++    </tr>
+     <tr style="border:0">
+       <td><a href="https://github.com/zuoxingdong/lerobot_robot_lekiwi_pincopen">lerobot_robot_lekiwi_pincopen</a></td>
+       <td>Plugin for a LeKiwi mobile manipulator with a <a href="https://github.com/pollen-robotics/PincOpen">PincOpen</a> gripper.</td>
